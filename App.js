@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { StatusBar, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, ActivityIndicator, Animated, StatusBar, Modal, TextInput, TouchableOpacity, Button } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as Font from 'expo-font';
 
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [name, setName] = useState('Jeff Becker'); // Allow for name customization
+  const [name, setName] = useState('Jeff Becker');
+  const [newName, setNewName] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [gradientColors, setGradientColors] = useState(['purple', 'teal', 'blue']);
 
   useEffect(() => {
     async function loadFonts() {
@@ -17,215 +21,131 @@ export default function App() {
 
     loadFonts();
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+
+    const interval = setInterval(() => {
+      // Rotate the colors in the array to create a changing gradient effect
+      setGradientColors(prevColors => {
+        const firstColor = prevColors.shift(); // Remove the first color
+        return [...prevColors, firstColor]; // Add it back to the end
+      });
+    }, 500);
+
+    return () => clearInterval(interval);
   }, []);
 
+  const handleNameChange = () => {
+    if (newName.trim()) {
+      setName(newName.trim());
+    }
+    setModalVisible(false);
+    setNewName(''); // Reset newName after changing
+  };
+
   if (!fontsLoaded) {
-    return null; // Or a loading indicator
+    return <ActivityIndicator size="large" />;
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcomeText}>Hello</Text>
-      <Text style={styles.subtitleText}>my name is</Text>
-      <View style={styles.nameBox}>
-      <Text style={styles.nameText}>{name}</Text>
+    <LinearGradient
+      colors={gradientColors}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradient}
+    >
+      <View style={styles.container}>
+        <Text style={styles.welcomeText}>Hello</Text>
+        <Text style={styles.subtitleText}>my name is</Text>
+        <TouchableOpacity
+          style={styles.nameBox}
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.nameText}>{name}</Text>
+        </TouchableOpacity>
+        <StatusBar style="auto" />
       </View>
-      <StatusBar style="auto"/>
-    </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalView}>
+          <TextInput
+            style={styles.input}
+            onChangeText={setNewName}
+            value={newName}
+            placeholder="Enter new name"
+            autoFocus
+          />
+          <Button title="Change Name" onPress={handleNameChange} />
+          <Button title="Cancel" onPress={() => setModalVisible(false)} />
+        </View>
+      </Modal>
+    </LinearGradient>
   );
 }
 
+
 const styles = StyleSheet.create({
+  // existing styles
+  modalView: {
+    marginTop: 50,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    width: '80%',
+  },
   container: {
     flex: 1,
-    backgroundColor: 'blue',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  gradient: {
+    flex: 1,
+  },
+  nameText: {
+    fontSize: 48,
+    fontFamily: 'Pacifico',
+    color: 'black',
+    textAlign: 'center',
   },
   welcomeText: {
     fontSize: 90,
     textTransform: 'uppercase',
     fontWeight: 'bold',
     color: 'white',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   subtitleText: {
     fontSize: 30,
     textTransform: 'uppercase',
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 20,
     textAlign: 'center',
+    marginBottom: 20,
   },
   nameBox: {
     width: "100%",
-    height: "50%",
+    height: "55%",
     backgroundColor: "white",
     borderRadius: 5,
     justifyContent: "center",
-    alignItems: 'center'
-  },
-  nameText: {
-    fontSize: 48,
-    fontFamily: 'Pacifico',
-    color: "black", 
-    textAlign: 'center',
+    alignItems: 'center',
   },
 });
-
-
-// import React, { useState, useEffect } from 'react';
-// import { StatusBar, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
-// import * as ScreenOrientation from 'expo-screen-orientation';
-// import * as Font from 'expo-font';
-
-
-// export default function App() {
-//   const [fontsLoaded, setFontsLoaded] = useState(false);
-//   const [fontApplied, setFontApplied] = useState(false);
-
-//   useEffect(() => {
-//     async function loadFonts() {
-//       await Font.loadAsync({
-//         'BlackDiamond': require('./assets/fonts/BlackDiamond.ttf'),
-//       });
-//       setFontsLoaded(true);
-//       setFontApplied(true); // Force re-render
-//     }
-
-//     loadFonts();
-//     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-//   }, []);
-
-//   const dynamicStyles = getDynamicStyles(fontApplied);
-
-  // if (!fontsLoaded) {
-  //   return <ActivityIndicator size="large" />;
-  // }
-
-//   return (
-//     <View style={dynamicStyles.container}>
-//       <Text style={dynamicStyles.welcomeText}>Hello</Text>
-//       <Text style={dynamicStyles.subtitleText}>my name is</Text>
-//       <View style={dynamicStyles.nameBox}>
-//         <Text style={dynamicStyles.nameText}>Jeff Becker</Text>
-//       </View>
-//       <StatusBar style="auto" />
-//     </View>
-//   );
-// }
-
-// function getDynamicStyles(fontApplied) {
-//   return StyleSheet.create({
-//     container: {
-//       flex: 1,
-//       backgroundColor: 'blue',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//     },
-//     welcomeText: {
-//       fontSize: 90,
-//       textTransform: 'uppercase',
-//       fontWeight: 'bold',
-//       color: 'white',
-//       textAlign: 'center'
-//     },
-//     subtitleText: {
-//       fontSize: 30,
-//       textTransform: 'uppercase',
-//       fontWeight: 'bold',
-//       color: 'white',
-//       marginBottom: 20,
-//       textAlign: 'center',
-//     },
-//     nameBox: {
-//       width: "100%",
-//       height: "55%",
-//       backgroundColor: "white",
-//       borderRadius: 5,
-//       justifyContent: "center",
-//       alignItems: 'center'
-//     },
-//     nameText: {
-//       fontSize: 80, // Updated size to match inline style
-//       textAlign: "center",
-//       fontWeight: "bold",
-//       fontFamily: fontApplied ? 'BlackDiamond' : undefined,
-//     }
-//   });
-// }
-
-// import React, { useState, useEffect } from 'react';
-// import { StatusBar } from 'expo-status-bar';
-// import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
-// import * as ScreenOrientation from 'expo-screen-orientation';
-// import * as Font from 'expo-font';
-
-// export default function App() {
-//   const [fontsLoaded, setFontsLoaded] = useState(false);
-
-//   useEffect(() => {
-//     async function loadFonts() {
-//       await Font.loadAsync({
-//         'Pacifico': require('./assets/fonts/Pacifico.ttf'),
-//       });
-//       setFontsLoaded(true);
-//     }
-
-//     loadFonts();
-//     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-//   }, []);
-
-//   if (!fontsLoaded) {
-//     return <ActivityIndicator size="large" />;
-//   }
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.welcomeText}>Hello</Text>
-//       <Text style={styles.subtitleText}>my name is</Text>
-//       <View style={styles.nameBox}>
-//       <Text style={styles.customFont}>Jeff Becker</Text>
-//       </View>
-//       <StatusBar style="auto" />
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: 'blue',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-//   welcomeText: {
-//     fontSize: 90,
-//     textTransform: 'uppercase',
-//     fontWeight: 'bold',
-//     color: 'white',
-//     textAlign: 'center'
-//   },
-//   subtitleText: {
-//     fontSize: 30,
-//     textTransform: 'uppercase',
-//     fontWeight: 'bold',
-//     color: 'white',
-//     marginBottom: 20,
-//     textAlign: 'center',
-//   },
-//   nameBox: {
-//     width: "100%",
-//     height: "55%",
-//     backgroundColor: "white",
-//     borderRadius: 5,
-//     justifyContent: "center",
-//     alignItems: 'center'
-//   },
-//   customFont: {
-//     fontFamily: 'Pacifico',
-//     fontSize: 60,
-//     textAlign: "center",
-//     fontWeight: "bold",
-//   },
-// });
