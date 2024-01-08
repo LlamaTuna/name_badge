@@ -1,52 +1,44 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, Animated, StatusBar, Modal, TextInput, TouchableOpacity, Button } from 'react-native';
+//Jeff Becker, CM3050 Midterm name badge app
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ActivityIndicator, StatusBar, Modal, TextInput, TouchableOpacity, Button } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import * as Font from 'expo-font';
 
 export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  // State for storing name, new name, modal visibility, and gradient colors
   const [name, setName] = useState('Jeff Becker');
   const [newName, setNewName] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [gradientColors, setGradientColors] = useState(['purple', 'teal', 'blue']);
 
+  // Effect for locking screen orientation and setting gradient animation
   useEffect(() => {
-    async function loadFonts() {
-      await Font.loadAsync({
-        'Pacifico': require('./assets/fonts/Pacifico.ttf'),
-      });
-      setFontsLoaded(true);
-    }
-
-    loadFonts();
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
 
     const interval = setInterval(() => {
-      // Rotate the colors in the array to create a changing gradient effect
+      // Rotate gradient colors every 1000ms
       setGradientColors(prevColors => {
-        const firstColor = prevColors.shift(); // Remove the first color
-        return [...prevColors, firstColor]; // Add it back to the end
+        const firstColor = prevColors.shift();
+        return [...prevColors, firstColor];
       });
-    }, 500);
+    }, 1000);
 
+    // Cleanup function to clear interval
     return () => clearInterval(interval);
   }, []);
 
+  // Function to handle name change
   const handleNameChange = () => {
     if (newName.trim()) {
       setName(newName.trim());
     }
     setModalVisible(false);
-    setNewName(''); // Reset newName after changing
+    setNewName('');
   };
 
-  if (!fontsLoaded) {
-    return <ActivityIndicator size="large" />;
-  }
-
+  // Component rendering
   return (
-    <LinearGradient
+    <LinearGradient //Added gradient to name tag background
       colors={gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -57,9 +49,9 @@ export default function App() {
         <Text style={styles.subtitleText}>my name is</Text>
         <TouchableOpacity
           style={styles.nameBox}
-          onPress={() => setModalVisible(true)}
+          onPress={() => setModalVisible(true)} //Touching name box opens modal, name text is changed in modal
         >
-          <Text style={styles.nameText}>{name}</Text>
+          <Text style={styles.nameText}>{name}</Text> 
         </TouchableOpacity>
         <StatusBar style="auto" />
       </View>
@@ -75,7 +67,7 @@ export default function App() {
             style={styles.input}
             onChangeText={setNewName}
             value={newName}
-            placeholder="Enter new name"
+            placeholder="Enter new name" //Pop up to change name
             autoFocus
           />
           <Button title="Change Name" onPress={handleNameChange} />
@@ -86,9 +78,8 @@ export default function App() {
   );
 }
 
-
+// StyleSheet for styling the component
 const styles = StyleSheet.create({
-  // existing styles
   modalView: {
     marginTop: 50,
     backgroundColor: 'white',
@@ -121,18 +112,19 @@ const styles = StyleSheet.create({
   },
   nameText: {
     fontSize: 46,
-    fontFamily: 'Pacifico',
+    fontWeight: 'bold',
+    fontStyle: 'italic',
     color: 'black',
     textAlign: 'center',
   },
-  welcomeText: {
+  welcomeText: { //hello text
     fontSize: 90,
     textTransform: 'uppercase',
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
   },
-  subtitleText: {
+  subtitleText: { //my name is text
     fontSize: 30,
     textTransform: 'uppercase',
     fontWeight: 'bold',
@@ -140,7 +132,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
-  nameBox: {
+  nameBox: { //name area
     width: "90%",
     height: "30%",
     backgroundColor: "white",
